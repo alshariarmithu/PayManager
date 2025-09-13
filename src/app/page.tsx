@@ -1,103 +1,196 @@
-import Image from "next/image";
+"use client";
+import React, { useState } from "react";
+import { Eye, EyeOff, Lock, Mail, Building2, AlertCircle } from "lucide-react";
 
-export default function Home() {
+const LoginScreen: React.FC = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-gradient-to-br from-[var(--color-neutral)] to white flex items-center justify-center">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6 sm:mb-8">
+          <div
+            className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full mb-3 sm:mb-4 shadow-lg transform transition-transform hover:scale-105"
+            style={{ backgroundColor: "#609966" }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <Building2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          </div>
+          <h1
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 logo-font"
+            style={{ color: "#40513b" }}
           >
-            Read our docs
-          </a>
+            PayManager
+          </h1>
+          <p className="text-sm sm:text-base text-gray-600">
+            Sign in to your PayManager
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        <div
+          className="rounded-2xl shadow-2xl p-6 sm:p-8 border border-gray-200  backdrop-blur-sm"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+          }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <div className="space-y-5 sm:space-y-6">
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "#40513b" }}
+              >
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5" style={{ color: "#9dc08b" }} />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base"
+                  style={{
+                    boxShadow: email ? "0 0 0 1px #609966" : "none",
+                  }}
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                className="block text-sm font-medium mb-2"
+                style={{ color: "#40513b" }}
+              >
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5" style={{ color: "#9dc08b" }} />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base"
+                  style={{
+                    boxShadow: password ? "0 0 0 1px #609966" : "none",
+                  }}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff
+                      className="h-5 w-5 hover:opacity-70"
+                      style={{ color: "#9dc08b" }}
+                    />
+                  ) : (
+                    <Eye
+                      className="h-5 w-5 hover:opacity-70"
+                      style={{ color: "#9dc08b" }}
+                    />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 transition-colors"
+                  style={{
+                    accentColor: "#609966",
+                  }}
+                />
+                <label
+                  className="ml-2 block text-sm"
+                  style={{ color: "#40513b" }}
+                >
+                  Remember me
+                </label>
+              </div>
+              <button
+                type="button"
+                className="text-sm transition-colors hover:underline"
+                style={{ color: "#609966" }}
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {error && (
+              <div
+                className="flex items-center space-x-2 p-3 rounded-lg border"
+                style={{
+                  backgroundColor: "#fef2f2",
+                  borderColor: "#fecaca",
+                  color: "#dc2626",
+                }}
+              >
+                <AlertCircle className="h-5 w-5 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={handleSubmit}
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-sm sm:text-base font-medium text-white transition-all duration-200 transform hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{
+                background: isLoading
+                  ? "#609966"
+                  : `linear-gradient(135deg, #609966)`,
+              }}
+            >
+              {isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="text-center mt-8">
+          <p className="text-sm font-medium text-gray-800 opacity-70">
+            © 2025 PayManager. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default LoginScreen;
