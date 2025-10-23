@@ -1,8 +1,10 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Lock, Mail, Building2, AlertCircle } from "lucide-react";
 
 const LoginScreen: React.FC = () => {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -20,10 +22,30 @@ const LoginScreen: React.FC = () => {
     }
 
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      const res = await fetch("http://localhost:5001/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError("Server error. Please try again later.");
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   return (
