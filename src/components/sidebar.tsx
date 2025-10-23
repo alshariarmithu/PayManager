@@ -26,7 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       icon: <Home className="h-5 w-5" />,
       href: "/dashboard",
     },
-    { name: "Users", icon: <Users className="h-5 w-5" />, href: "/users" },
+    { name: "Employees", icon: <Users className="h-5 w-5" />, href: "/employees" },
     {
       name: "Departments",
       icon: <Briefcase className="h-5 w-5" />,
@@ -36,6 +36,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       name: "Salaries",
       icon: <DollarSign className="h-5 w-5" />,
       href: "/salaries",
+    },
+    {
+      name: "Grade",
+      icon: <DollarSign className="h-5 w-5" />,
+      href: "/grade",
     },
     {
       name: "Settings",
