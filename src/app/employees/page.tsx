@@ -16,7 +16,6 @@ import {
   Filter,
 } from "lucide-react";
 
-// Types
 interface Employee {
   Employee_Id: number;
   User_Name: string;
@@ -29,45 +28,44 @@ type SortField = keyof Employee;
 type SortOrder = "asc" | "desc";
 
 // Mock Data
-const mockEmployees: Employee[] = [
-  {
-    Employee_Id: 1,
-    User_Name: "Sarah Johnson",
-    Dept_Name: "Engineering",
-    Grade_Name: "Senior",
-    Hire_Date: "2021-03-15",
-  },
-  {
-    Employee_Id: 2,
-    User_Name: "Michael Chen",
-    Dept_Name: "Marketing",
-    Grade_Name: "Manager",
-    Hire_Date: "2020-07-22",
-  },
-  {
-    Employee_Id: 3,
-    User_Name: "Emily Rodriguez",
-    Dept_Name: "Sales",
-    Grade_Name: "Associate",
-    Hire_Date: "2023-01-10",
-  },
-  {
-    Employee_Id: 4,
-    User_Name: "David Kim",
-    Dept_Name: "Engineering",
-    Grade_Name: "Lead",
-    Hire_Date: "2019-11-05",
-  },
-  {
-    Employee_Id: 5,
-    User_Name: "Jessica Taylor",
-    Dept_Name: "HR",
-    Grade_Name: "Manager",
-    Hire_Date: "2022-05-18",
-  },
-];
+// const mockEmployees: Employee[] = [
+//   {
+//     Employee_Id: 1,
+//     User_Name: "Sarah Johnson",
+//     Dept_Name: "Engineering",
+//     Grade_Name: "Senior",
+//     Hire_Date: "2021-03-15",
+//   },
+//   {
+//     Employee_Id: 2,
+//     User_Name: "Michael Chen",
+//     Dept_Name: "Marketing",
+//     Grade_Name: "Manager",
+//     Hire_Date: "2020-07-22",
+//   },
+//   {
+//     Employee_Id: 3,
+//     User_Name: "Emily Rodriguez",
+//     Dept_Name: "Sales",
+//     Grade_Name: "Associate",
+//     Hire_Date: "2023-01-10",
+//   },
+//   {
+//     Employee_Id: 4,
+//     User_Name: "David Kim",
+//     Dept_Name: "Engineering",
+//     Grade_Name: "Lead",
+//     Hire_Date: "2019-11-05",
+//   },
+//   {
+//     Employee_Id: 5,
+//     User_Name: "Jessica Taylor",
+//     Dept_Name: "HR",
+//     Grade_Name: "Manager",
+//     Hire_Date: "2022-05-18",
+//   },
+// ];
 
-// UI Components
 const Card = ({
   children,
   className = "",
@@ -376,7 +374,6 @@ const Toast = ({
   );
 };
 
-// Main Component
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -403,13 +400,13 @@ export default function EmployeesPage() {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/employees");
+      const response = await fetch("http://localhost:5001/api/employees");
       if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       setEmployees(data);
     } catch (error) {
       console.error("Error fetching employees, using mock data:", error);
-      setEmployees(mockEmployees);
+      //setEmployees(mockEmployees);
     } finally {
       setLoading(false);
     }
@@ -454,7 +451,7 @@ export default function EmployeesPage() {
     setToast({ message, type });
   };
 
-  const handleAddEmployee = () => {
+  const handleAddEmployee = async () => {
     if (
       !newEmployee.User_Name ||
       !newEmployee.Dept_Name ||
@@ -465,25 +462,50 @@ export default function EmployeesPage() {
       return;
     }
 
-    const newEmp: Employee = {
-      Employee_Id: Math.max(...employees.map((e) => e.Employee_Id), 0) + 1,
-      ...newEmployee,
-    };
+    try {
+      const response = await fetch("http://localhost:5001/api/employees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: 1,
+          deptId: 1,
+          gradeId: 1,
+          hireDate: newEmployee.Hire_Date,
+        }),
+      });
 
-    setEmployees([...employees, newEmp]);
-    setIsAddModalOpen(false);
-    setNewEmployee({
-      User_Name: "",
-      Dept_Name: "",
-      Grade_Name: "",
-      Hire_Date: "",
-    });
-    showToast("Employee added successfully", "success");
+      if (!response.ok) throw new Error("Failed to add employee");
+
+      await fetchEmployees(); // Refresh the list
+      setIsAddModalOpen(false);
+      setNewEmployee({
+        User_Name: "",
+        Dept_Name: "",
+        Grade_Name: "",
+        Hire_Date: "",
+      });
+      showToast("Employee added successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to add employee", "error");
+    }
   };
 
-  const handleDeleteEmployee = (id: number) => {
-    setEmployees(employees.filter((e) => e.Employee_Id !== id));
-    showToast("Employee deleted successfully", "success");
+  const handleDeleteEmployee = async (id: number) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/employees/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) throw new Error("Failed to delete employee");
+      await fetchEmployees();
+      showToast("Employee deleted successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to delete employee", "error");
+    }
   };
 
   const handleViewEmployee = (emp: Employee) => {

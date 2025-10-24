@@ -28,7 +28,6 @@ interface Department {
 type SortField = "Dept_Id" | "Dept_Name" | "Total_Employees";
 type SortOrder = "asc" | "desc";
 
-
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,11 +45,13 @@ export default function DepartmentsPage() {
     type: "success" | "error" | "info";
   }>({ show: false, message: "", type: "success" });
 
-
   const [formData, setFormData] = useState({
     Dept_Name: "",
     Total_Employees: 0,
   });
+
+  // Base API URL - adjust this to match your backend URL
+  const API_BASE_URL = "http://localhost:5001/api/departments";
 
   useEffect(() => {
     fetchDepartments();
@@ -59,10 +60,12 @@ export default function DepartmentsPage() {
   const fetchDepartments = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/departments");
+      const response = await fetch(API_BASE_URL);
+      if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
       setDepartments(data);
     } catch (error) {
+      console.error(error);
       showToast("Failed to fetch departments", "error");
     } finally {
       setLoading(false);
@@ -121,48 +124,88 @@ export default function DepartmentsPage() {
     }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!formData.Dept_Name.trim()) {
       showToast("Department name is required", "error");
       return;
     }
-    const newDept: Department = {
-      Dept_Id: Math.max(...departments.map((d) => d.Dept_Id), 0) + 1,
-      Dept_Name: formData.Dept_Name,
-      Total_Employees: formData.Total_Employees,
-    };
-    setDepartments([...departments, newDept]);
-    setIsAddModalOpen(false);
-    setFormData({ Dept_Name: "", Total_Employees: 0 });
-    showToast("Department added successfully", "success");
+
+    try {
+      const response = await fetch(API_BASE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Dept_Name: formData.Dept_Name,
+          Total_Employees: formData.Total_Employees,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create");
+
+      const newDept = await response.json();
+      setDepartments([...departments, newDept]);
+      setIsAddModalOpen(false);
+      setFormData({ Dept_Name: "", Total_Employees: 0 });
+      showToast("Department added successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to add department", "error");
+    }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!selectedDept || !formData.Dept_Name.trim()) {
       showToast("Department name is required", "error");
       return;
     }
-    setDepartments(
-      departments.map((d) =>
-        d.Dept_Id === selectedDept.Dept_Id
-          ? {
-              ...d,
-              Dept_Name: formData.Dept_Name,
-              Total_Employees: formData.Total_Employees,
-            }
-          : d
-      )
-    );
-    setIsEditModalOpen(false);
-    setSelectedDept(null);
-    setFormData({ Dept_Name: "", Total_Employees: 0 });
-    showToast("Department updated successfully", "success");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/${selectedDept.Dept_Id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Dept_Name: formData.Dept_Name,
+          Total_Employees: formData.Total_Employees,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to update");
+
+      const updatedDept = await response.json();
+      setDepartments(
+        departments.map((d) =>
+          d.Dept_Id === selectedDept.Dept_Id ? updatedDept : d
+        )
+      );
+      setIsEditModalOpen(false);
+      setSelectedDept(null);
+      setFormData({ Dept_Name: "", Total_Employees: 0 });
+      showToast("Department updated successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to update department", "error");
+    }
   };
 
-  const handleDelete = (dept: Department) => {
-    setDepartments(departments.filter((d) => d.Dept_Id !== dept.Dept_Id));
-    setActiveDropdown(null);
-    showToast("Department deleted successfully", "success");
+  const handleDelete = async (dept: Department) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/${dept.Dept_Id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete");
+
+      setDepartments(departments.filter((d) => d.Dept_Id !== dept.Dept_Id));
+      setActiveDropdown(null);
+      showToast("Department deleted successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to delete department", "error");
+    }
   };
 
   const openEditModal = (dept: Department) => {

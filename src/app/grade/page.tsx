@@ -13,13 +13,17 @@ import {
   ArrowUpDown,
   TrendingUp,
   X,
+  AlertCircle,
 } from "lucide-react";
+
+const API_BASE_URL = "http://localhost:5001/api";
 
 type Grade = {
   Grade_Id: number;
   Grade_Name: string;
   Basic_Salary: number;
   Grade_Bonus: number;
+  Employee_Count?: number;
 };
 
 type SortField = "Grade_Name" | "Basic_Salary" | "Grade_Bonus";
@@ -49,6 +53,7 @@ export default function GradesPage() {
     Grade_Bonus: "",
   });
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const showToast = (
     title: string,
@@ -69,11 +74,21 @@ export default function GradesPage() {
   const fetchGrades = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/grades");
+      const response = await fetch(`${API_BASE_URL}/grades`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.status}`);
+      }
+
       const data = await response.json();
       setGrades(data);
     } catch (error) {
-      showToast("Error", "Failed to fetch grades", "destructive");
+      console.error("Fetch error:", error);
+      showToast(
+        "Error",
+        "Failed to fetch grades. Make sure the backend is running.",
+        "destructive"
+      );
     } finally {
       setLoading(false);
     }
@@ -117,52 +132,93 @@ export default function GradesPage() {
     [filteredAndSortedGrades]
   );
 
+  const validateForm = () => {
+    if (!formData.Grade_Name.trim()) {
+      showToast("Validation Error", "Grade name is required", "destructive");
+      return false;
+    }
+    if (!formData.Basic_Salary || parseFloat(formData.Basic_Salary) < 0) {
+      showToast(
+        "Validation Error",
+        "Valid basic salary is required",
+        "destructive"
+      );
+      return false;
+    }
+    if (!formData.Grade_Bonus || parseFloat(formData.Grade_Bonus) < 0) {
+      showToast(
+        "Validation Error",
+        "Valid grade bonus is required",
+        "destructive"
+      );
+      return false;
+    }
+    return true;
+  };
+
   const handleAdd = async () => {
+    if (!validateForm()) return;
+
     try {
-      const response = await fetch("/api/grades", {
+      setIsSubmitting(true);
+      const response = await fetch(`${API_BASE_URL}/grades`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          Grade_Name: formData.Grade_Name,
-          Basic_Salary: Number(formData.Basic_Salary),
-          Grade_Bonus: Number(formData.Grade_Bonus),
+          Grade_Name: formData.Grade_Name.trim(),
+          Basic_Salary: parseFloat(formData.Basic_Salary),
+          Grade_Bonus: parseFloat(formData.Grade_Bonus),
         }),
       });
 
-      if (response.ok) {
-        showToast("Success", "Grade added successfully");
-        setIsAddModalOpen(false);
-        setFormData({ Grade_Name: "", Basic_Salary: "", Grade_Bonus: "" });
-        fetchGrades();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to add grade");
       }
+
+      showToast("Success", "Grade added successfully");
+      setIsAddModalOpen(false);
+      setFormData({ Grade_Name: "", Basic_Salary: "", Grade_Bonus: "" });
+      fetchGrades();
     } catch (error) {
       showToast("Error", "Failed to add grade", "destructive");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleEdit = async () => {
-    if (!selectedGrade) return;
+    if (!selectedGrade || !validateForm()) return;
 
     try {
-      const response = await fetch(`/api/grades/${selectedGrade.Grade_Id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          Grade_Name: formData.Grade_Name,
-          Basic_Salary: Number(formData.Basic_Salary),
-          Grade_Bonus: Number(formData.Grade_Bonus),
-        }),
-      });
+      setIsSubmitting(true);
+      const response = await fetch(
+        `${API_BASE_URL}/grades/${selectedGrade.Grade_Id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Grade_Name: formData.Grade_Name.trim(),
+            Basic_Salary: parseFloat(formData.Basic_Salary),
+            Grade_Bonus: parseFloat(formData.Grade_Bonus),
+          }),
+        }
+      );
 
-      if (response.ok) {
-        showToast("Success", "Grade updated successfully");
-        setIsEditModalOpen(false);
-        setSelectedGrade(null);
-        setFormData({ Grade_Name: "", Basic_Salary: "", Grade_Bonus: "" });
-        fetchGrades();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update grade");
       }
+
+      showToast("Success", "Grade updated successfully");
+      setIsEditModalOpen(false);
+      setSelectedGrade(null);
+      setFormData({ Grade_Name: "", Basic_Salary: "", Grade_Bonus: "" });
+      fetchGrades();
     } catch (error) {
       showToast("Error", "Failed to update grade", "destructive");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -170,18 +226,27 @@ export default function GradesPage() {
     if (!selectedGrade) return;
 
     try {
-      const response = await fetch(`/api/grades/${selectedGrade.Grade_Id}`, {
-        method: "DELETE",
-      });
+      setIsSubmitting(true);
+      const response = await fetch(
+        `${API_BASE_URL}/grades/${selectedGrade.Grade_Id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-      if (response.ok) {
-        showToast("Success", "Grade deleted successfully");
-        setIsDeleteModalOpen(false);
-        setSelectedGrade(null);
-        fetchGrades();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete grade");
       }
+
+      showToast("Success", "Grade deleted successfully");
+      setIsDeleteModalOpen(false);
+      setSelectedGrade(null);
+      fetchGrades();
     } catch (error) {
       showToast("Error", "Failed to delete grade", "destructive");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -265,7 +330,7 @@ export default function GradesPage() {
                   Total Base Salary
                 </p>
                 <p className="text-3xl font-bold text-slate-900 mt-2">
-                  ${totalSalary.toLocaleString()}
+                  ৳{totalSalary.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-emerald-100 rounded-lg">
@@ -281,7 +346,7 @@ export default function GradesPage() {
                   Total Bonuses
                 </p>
                 <p className="text-3xl font-bold text-slate-900 mt-2">
-                  ${totalBonus.toLocaleString()}
+                  ৳{totalBonus.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-amber-100 rounded-lg">
@@ -373,6 +438,20 @@ export default function GradesPage() {
                       </td>
                     </tr>
                   ))
+                ) : filteredAndSortedGrades.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2 text-slate-500">
+                        <AlertCircle className="w-12 h-12" />
+                        <p className="text-lg font-medium">No grades found</p>
+                        <p className="text-sm">
+                          {searchQuery
+                            ? "Try adjusting your search"
+                            : "Add your first grade to get started"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
                 ) : (
                   <>
                     <AnimatePresence>
@@ -393,17 +472,17 @@ export default function GradesPage() {
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-medium text-emerald-600">
-                              ${grade.Basic_Salary.toLocaleString()}
+                              ৳{grade.Basic_Salary.toLocaleString()}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-medium text-amber-600">
-                              ${grade.Grade_Bonus.toLocaleString()}
+                              ৳{grade.Grade_Bonus.toLocaleString()}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-semibold text-blue-600">
-                              $
+                              ৳
                               {(
                                 grade.Basic_Salary + grade.Grade_Bonus
                               ).toLocaleString()}
@@ -451,13 +530,13 @@ export default function GradesPage() {
                     <tr className="bg-gradient-to-r from-slate-50 to-blue-50 font-semibold border-t-2 border-slate-200">
                       <td className="px-6 py-4 text-slate-900">Total</td>
                       <td className="px-6 py-4 text-emerald-600">
-                        ${totalSalary.toLocaleString()}
+                        ৳{totalSalary.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-amber-600">
-                        ${totalBonus.toLocaleString()}
+                        ৳{totalBonus.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-blue-600">
-                        ${(totalSalary + totalBonus).toLocaleString()}
+                        ৳{(totalSalary + totalBonus).toLocaleString()}
                       </td>
                       <td className="px-6 py-4"></td>
                     </tr>
@@ -531,16 +610,25 @@ export default function GradesPage() {
             </div>
             <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
               <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setFormData({
+                    Grade_Name: "",
+                    Basic_Salary: "",
+                    Grade_Bonus: "",
+                  });
+                }}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAdd}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all disabled:opacity-50"
               >
-                Add Grade
+                {isSubmitting ? "Adding..." : "Add Grade"}
               </button>
             </div>
           </motion.div>
@@ -604,16 +692,26 @@ export default function GradesPage() {
             </div>
             <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
               <button
-                onClick={() => setIsEditModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedGrade(null);
+                  setFormData({
+                    Grade_Name: "",
+                    Basic_Salary: "",
+                    Grade_Bonus: "",
+                  });
+                }}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEdit}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all disabled:opacity-50"
               >
-                Save Changes
+                {isSubmitting ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </motion.div>
@@ -642,16 +740,21 @@ export default function GradesPage() {
             </div>
             <div className="p-6 flex justify-end gap-3">
               <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSelectedGrade(null);
+                }}
+                disabled={isSubmitting}
+                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all disabled:opacity-50"
               >
-                Delete
+                {isSubmitting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </motion.div>

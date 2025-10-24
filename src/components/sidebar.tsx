@@ -3,13 +3,16 @@ import React, { useState } from "react";
 import {
   Home,
   Users,
+  User,
   Briefcase,
-  DollarSign,
+  Banknote,
+  BarChart3,
   Settings,
   LogOut,
   X,
   Menu,
 } from "lucide-react";
+
 import Link from "next/link";
 
 interface SidebarProps {
@@ -26,7 +29,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       icon: <Home className="h-5 w-5" />,
       href: "/dashboard",
     },
-    { name: "Employees", icon: <Users className="h-5 w-5" />, href: "/employees" },
+    {
+      name: "Users",
+      icon: <User className="h-5 w-5" />,
+      href: "/users",
+    },
+    {
+      name: "Employees",
+      icon: <Users className="h-5 w-5" />,
+      href: "/employees",
+    },
     {
       name: "Departments",
       icon: <Briefcase className="h-5 w-5" />,
@@ -34,12 +46,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     },
     {
       name: "Salaries",
-      icon: <DollarSign className="h-5 w-5" />,
+      icon: <Banknote className="h-5 w-5" />,
       href: "/salaries",
     },
     {
       name: "Grade",
-      icon: <DollarSign className="h-5 w-5" />,
+      icon: <BarChart3 className="h-5 w-5" />,
       href: "/grade",
     },
     {
