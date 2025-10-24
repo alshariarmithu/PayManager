@@ -24,47 +24,26 @@ interface Employee {
   Hire_Date: string;
 }
 
+interface Department {
+  id: number;
+  name: string;
+}
+
+interface Grade {
+  id: number;
+  name: string;
+  basicSalary: number;
+  bonus: number;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
 type SortField = keyof Employee;
 type SortOrder = "asc" | "desc";
-
-// Mock Data
-// const mockEmployees: Employee[] = [
-//   {
-//     Employee_Id: 1,
-//     User_Name: "Sarah Johnson",
-//     Dept_Name: "Engineering",
-//     Grade_Name: "Senior",
-//     Hire_Date: "2021-03-15",
-//   },
-//   {
-//     Employee_Id: 2,
-//     User_Name: "Michael Chen",
-//     Dept_Name: "Marketing",
-//     Grade_Name: "Manager",
-//     Hire_Date: "2020-07-22",
-//   },
-//   {
-//     Employee_Id: 3,
-//     User_Name: "Emily Rodriguez",
-//     Dept_Name: "Sales",
-//     Grade_Name: "Associate",
-//     Hire_Date: "2023-01-10",
-//   },
-//   {
-//     Employee_Id: 4,
-//     User_Name: "David Kim",
-//     Dept_Name: "Engineering",
-//     Grade_Name: "Lead",
-//     Hire_Date: "2019-11-05",
-//   },
-//   {
-//     Employee_Id: 5,
-//     User_Name: "Jessica Taylor",
-//     Dept_Name: "HR",
-//     Grade_Name: "Manager",
-//     Hire_Date: "2022-05-18",
-//   },
-// ];
 
 const Card = ({
   children,
@@ -184,7 +163,7 @@ const Dialog = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/50 bg-opacity-50 z-40"
           onClick={onClose}
         />
         <motion.div
@@ -376,7 +355,11 @@ const Toast = ({
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dropdownLoading, setDropdownLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState("All");
   const [sortField, setSortField] = useState<SortField>("Employee_Id");
@@ -386,33 +369,65 @@ export default function EmployeesPage() {
     message: string;
     type: "success" | "error" | "info";
   } | null>(null);
+
+  // Update newEmployee state to use IDs
   const [newEmployee, setNewEmployee] = useState({
-    User_Name: "",
-    Dept_Name: "",
-    Grade_Name: "",
-    Hire_Date: "",
+    userId: "",
+    deptId: "",
+    gradeId: "",
+    hireDate: "",
   });
 
   useEffect(() => {
     fetchEmployees();
+    fetchDropdownData();
   }, []);
 
   const fetchEmployees = async () => {
     setLoading(true);
     try {
       const response = await fetch("http://localhost:5001/api/employees");
-      if (!response.ok) throw new Error("Failed to fetch");
+      if (!response.ok) throw new Error("Failed to fetch employees");
       const data = await response.json();
       setEmployees(data);
     } catch (error) {
-      console.error("Error fetching employees, using mock data:", error);
-      //setEmployees(mockEmployees);
+      console.error("Error fetching employees:", error);
+      showToast("Failed to fetch employees", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const departments = useMemo(() => {
+  const fetchDropdownData = async () => {
+    setDropdownLoading(true);
+    try {
+      const [deptsResponse, gradesResponse, usersResponse] = await Promise.all([
+        fetch("http://localhost:5001/api/employees/departments"),
+        fetch("http://localhost:5001/api/employees/grades"),
+        fetch("http://localhost:5001/api/employees/users/employees"),
+      ]);
+
+      if (!deptsResponse.ok || !gradesResponse.ok || !usersResponse.ok) {
+        throw new Error("Failed to fetch dropdown data");
+      }
+
+      const deptsData = await deptsResponse.json();
+      const gradesData = await gradesResponse.json();
+      const usersData = await usersResponse.json();
+
+      setDepartments(deptsData);
+      setGrades(gradesData);
+      setUsers(usersData);
+    } catch (error) {
+      console.error("Error fetching dropdown data:", error);
+      showToast("Failed to fetch dropdown data", "error");
+    } finally {
+      setDropdownLoading(false);
+    }
+  };
+
+  // Update the departments for filter
+  const departmentOptions = useMemo(() => {
     const depts = ["All", ...new Set(employees.map((e) => e.Dept_Name))];
     return depts;
   }, [employees]);
@@ -453,10 +468,10 @@ export default function EmployeesPage() {
 
   const handleAddEmployee = async () => {
     if (
-      !newEmployee.User_Name ||
-      !newEmployee.Dept_Name ||
-      !newEmployee.Grade_Name ||
-      !newEmployee.Hire_Date
+      !newEmployee.userId ||
+      !newEmployee.deptId ||
+      !newEmployee.gradeId ||
+      !newEmployee.hireDate
     ) {
       showToast("Please fill all fields", "error");
       return;
@@ -467,10 +482,10 @@ export default function EmployeesPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: 1,
-          deptId: 1,
-          gradeId: 1,
-          hireDate: newEmployee.Hire_Date,
+          userId: parseInt(newEmployee.userId),
+          deptId: parseInt(newEmployee.deptId),
+          gradeId: parseInt(newEmployee.gradeId),
+          hireDate: newEmployee.hireDate,
         }),
       });
 
@@ -479,10 +494,10 @@ export default function EmployeesPage() {
       await fetchEmployees(); // Refresh the list
       setIsAddModalOpen(false);
       setNewEmployee({
-        User_Name: "",
-        Dept_Name: "",
-        Grade_Name: "",
-        Hire_Date: "",
+        userId: "",
+        deptId: "",
+        gradeId: "",
+        hireDate: "",
       });
       showToast("Employee added successfully", "success");
     } catch (error) {
@@ -567,7 +582,7 @@ export default function EmployeesPage() {
                   onChange={(e) => setDeptFilter(e.target.value)}
                   className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                 >
-                  {departments.map((dept) => (
+                  {departmentOptions.map((dept) => (
                     <option key={dept} value={dept}>
                       {dept === "All" ? "All Departments" : dept}
                     </option>
@@ -717,56 +732,99 @@ export default function EmployeesPage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
+              User
             </label>
-            <Input
-              placeholder="Enter full name"
-              value={newEmployee.User_Name}
-              onChange={(val) =>
-                setNewEmployee({ ...newEmployee, User_Name: val })
+            <select
+              value={newEmployee.userId}
+              onChange={(e) =>
+                setNewEmployee({ ...newEmployee, userId: e.target.value })
               }
-            />
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              disabled={dropdownLoading}
+            >
+              <option value="">Select User</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.email})
+                </option>
+              ))}
+            </select>
+            {dropdownLoading && (
+              <p className="text-xs text-gray-500 mt-1">Loading users...</p>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Department
             </label>
-            <Input
-              placeholder="Enter department"
-              value={newEmployee.Dept_Name}
-              onChange={(val) =>
-                setNewEmployee({ ...newEmployee, Dept_Name: val })
+            <select
+              value={newEmployee.deptId}
+              onChange={(e) =>
+                setNewEmployee({ ...newEmployee, deptId: e.target.value })
               }
-            />
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              disabled={dropdownLoading}
+            >
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+            {dropdownLoading && (
+              <p className="text-xs text-gray-500 mt-1">
+                Loading departments...
+              </p>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Grade
             </label>
-            <Input
-              placeholder="Enter grade"
-              value={newEmployee.Grade_Name}
-              onChange={(val) =>
-                setNewEmployee({ ...newEmployee, Grade_Name: val })
+            <select
+              value={newEmployee.gradeId}
+              onChange={(e) =>
+                setNewEmployee({ ...newEmployee, gradeId: e.target.value })
               }
-            />
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              disabled={dropdownLoading}
+            >
+              <option value="">Select Grade</option>
+              {grades.map((grade) => (
+                <option key={grade.id} value={grade.id}>
+                  {grade.name} (Salary: ${grade.basicSalary})
+                </option>
+              ))}
+            </select>
+            {dropdownLoading && (
+              <p className="text-xs text-gray-500 mt-1">Loading grades...</p>
+            )}
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Hire Date
             </label>
             <input
               type="date"
-              value={newEmployee.Hire_Date}
+              value={newEmployee.hireDate}
               onChange={(e) =>
-                setNewEmployee({ ...newEmployee, Hire_Date: e.target.value })
+                setNewEmployee({ ...newEmployee, hireDate: e.target.value })
               }
               className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
+
           <div className="flex gap-3 pt-4">
-            <Button onClick={handleAddEmployee} className="flex-1">
-              Add Employee
+            <Button
+              onClick={handleAddEmployee}
+              className="flex-1"
+              disabled={dropdownLoading}
+            >
+              {dropdownLoading ? "Loading..." : "Add Employee"}
             </Button>
             <Button
               onClick={() => setIsAddModalOpen(false)}
