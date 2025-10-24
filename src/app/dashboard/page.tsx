@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -11,6 +12,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import axios from "axios";
 
 import {
   Users,
@@ -22,29 +24,41 @@ import {
 } from "lucide-react";
 
 const Dashboard: React.FC = () => {
-  // Sample data for demonstration
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5001/api/dashboard");
+        setData(res.data);
+        console.log(res.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
+  if (loading) return <div className="p-6 text-center">Loading...</div>;
+  if (!data) return <div className="p-6 text-center">No data available</div>;
+
   const stats = {
-    totalUsers: 1245,
-    totalEmployees: 892,
-    totalDepartments: 12,
-    totalSalariesPaid: 2850000,
+    totalUsers: data.totalUsers ?? 0,
+    totalEmployees: data.totalEmployees ?? 0,
+    totalDepartments: data.totalDepartments ?? 0,
+    totalSalariesPaid: data.totalSalariesPaid ?? 0,
   };
 
-  const salariesByDept = [
-    { name: "Engineering", value: 850000 },
-    { name: "Marketing", value: 420000 },
-    { name: "Sales", value: 650000 },
-    { name: "HR", value: 280000 },
-    { name: "Finance", value: 380000 },
-    { name: "Operations", value: 270000 },
-  ];
+  const salariesByDept = Array.isArray(data.salariesByDept)
+    ? data.salariesByDept
+    : [];
 
-  const employeesByGrade = [
-    { name: "Senior", value: 245 },
-    { name: "Mid", value: 387 },
-    { name: "Junior", value: 198 },
-    { name: "Intern", value: 62 },
-  ];
+  const employeesByGrade = Array.isArray(data.employeesByGrade)
+    ? data.employeesByGrade
+    : [];
 
   const statCards = [
     {
@@ -76,7 +90,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: "Total Salaries Paid",
-      value: `$${(stats.totalSalariesPaid / 1000000).toFixed(1)}M`,
+      value: `$${stats.totalSalariesPaid.toFixed(1)}`,
       icon: DollarSign,
       gradient: "from-emerald-600 to-emerald-800",
       bgColor: "#40513b",
@@ -132,7 +146,7 @@ const Dashboard: React.FC = () => {
           style={{ backgroundColor: "#609966" }}
         ></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto space-y-8">
+        <div className="relative z-10 max-w-7xl mx-auto space-y-5">
           {/* Header */}
           <div className="text-center sm:text-left">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -146,7 +160,7 @@ const Dashboard: React.FC = () => {
                   Dashboard Overview
                 </h1>
                 <p className="text-lg text-gray-600 font-medium">
-                  Welcome back to PayManager Admin
+                  Welcome back to PayManager
                 </p>
               </div>
               <div className="mt-4 sm:mt-0 flex items-center space-x-2">
@@ -253,7 +267,10 @@ const Dashboard: React.FC = () => {
                   className="p-3 rounded-xl"
                   style={{ backgroundColor: "rgba(96, 153, 102, 0.1)" }}
                 >
-                  <BarChart className="w-6 h-6" style={{ color: "#609966" }} />
+                  <TrendingUp
+                    className="w-6 h-6"
+                    style={{ color: "#609966" }}
+                  />
                 </div>
               </div>
               <div className="h-80">
@@ -273,7 +290,9 @@ const Dashboard: React.FC = () => {
                       axisLine={false}
                       tickLine={false}
                       tick={{ fontSize: 12, fill: "#40513b" }}
-                      tickFormatter={(value) => `$${value / 1000}k`}
+                      tickFormatter={(value) =>
+                        `$${(value / 1000).toLocaleString()}k`
+                      }
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar
@@ -323,7 +342,7 @@ const Dashboard: React.FC = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) =>
+                      label={({ name, percent }: any) =>
                         `${name} ${(percent * 100).toFixed(0)}%`
                       }
                       outerRadius={100}
@@ -350,7 +369,11 @@ const Dashboard: React.FC = () => {
           {/* Bottom Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { label: "Average Salary", value: "$95,500", change: "+3.2%" },
+              {
+                label: "Average Salary",
+                value: stats.totalSalariesPaid / stats.totalEmployees,
+                change: "+3.2%",
+              },
               { label: "Department Growth", value: "2 New", change: "+20%" },
               { label: "Employee Satisfaction", value: "94%", change: "+1.5%" },
             ].map((item, index) => (

@@ -55,9 +55,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       href: "/grade",
     },
     {
-      name: "Settings",
+      name: "NLQuery",
       icon: <Settings className="h-5 w-5" />,
-      href: "/settings",
+      href: "/nlquery",
     },
   ];
 

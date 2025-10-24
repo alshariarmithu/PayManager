@@ -17,7 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
-        <main className="flex-1 p-4 pt-20 overflow-y-auto">{children}</main>
+        <main className="flex-1 p-4 pt-2 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
