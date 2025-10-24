@@ -13,9 +13,9 @@ import {
   Trash2,
   Eye,
   X,
+  ChevronDown,
 } from "lucide-react";
 
-// Types
 interface Salary {
   Salary_Id: string;
   Employee_Name: string;
@@ -23,56 +23,14 @@ interface Salary {
   Pay_Date: string;
 }
 
+interface Employee {
+  id: number;
+  name: string;
+}
+
 type SortField = "Employee_Name" | "Salary" | "Pay_Date";
 type SortOrder = "asc" | "desc";
 
-// Mock data fallback
-const MOCK_SALARIES: Salary[] = [
-  {
-    Salary_Id: "SAL001",
-    Employee_Name: "John Anderson",
-    Salary: 75000,
-    Pay_Date: "2025-10-15",
-  },
-  {
-    Salary_Id: "SAL002",
-    Employee_Name: "Sarah Mitchell",
-    Salary: 82000,
-    Pay_Date: "2025-10-15",
-  },
-  {
-    Salary_Id: "SAL003",
-    Employee_Name: "Michael Chen",
-    Salary: 68000,
-    Pay_Date: "2025-10-15",
-  },
-  {
-    Salary_Id: "SAL004",
-    Employee_Name: "Emily Rodriguez",
-    Salary: 91000,
-    Pay_Date: "2025-10-20",
-  },
-  {
-    Salary_Id: "SAL005",
-    Employee_Name: "David Kim",
-    Salary: 78500,
-    Pay_Date: "2025-10-20",
-  },
-  {
-    Salary_Id: "SAL006",
-    Employee_Name: "Jessica Thompson",
-    Salary: 85000,
-    Pay_Date: "2025-10-22",
-  },
-  {
-    Salary_Id: "SAL007",
-    Employee_Name: "Robert Johnson",
-    Salary: 72500,
-    Pay_Date: "2025-10-22",
-  },
-];
-
-// Toast notification function
 const toast = (message: string, type: "success" | "error" = "success") => {
   const toastEl = document.createElement("div");
   toastEl.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-2xl text-white font-medium transition-all duration-300 ${
@@ -86,6 +44,104 @@ const toast = (message: string, type: "success" | "error" = "success") => {
     toastEl.style.opacity = "0";
     setTimeout(() => toastEl.remove(), 300);
   }, 2700);
+};
+
+const EmployeeDropdown = ({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (name: string) => void;
+  placeholder: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5001/api/salaries/employees"
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setEmployees(data);
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  const filteredEmployees = employees.filter((emp) =>
+    emp.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-left focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent flex items-center justify-between bg-white"
+      >
+        <span className={value ? "text-slate-900" : "text-slate-400"}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-hidden">
+            <div className="p-2 border-b border-slate-200">
+              <input
+                type="text"
+                placeholder="Search employees..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            <div className="overflow-y-auto max-h-48">
+              {filteredEmployees.length > 0 ? (
+                filteredEmployees.map((emp) => (
+                  <button
+                    key={emp.id}
+                    type="button"
+                    onClick={() => {
+                      onChange(emp.name);
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }}
+                    className="w-full px-4 py-2 text-sm text-left hover:bg-emerald-50 transition-colors"
+                  >
+                    {emp.name}
+                  </button>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-sm text-slate-500 text-center">
+                  No employees found
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 export default function SalariesPage() {
@@ -106,32 +162,29 @@ export default function SalariesPage() {
   });
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 
-  // Fetch salaries data
   useEffect(() => {
-    const fetchSalaries = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/salaries");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch salaries");
-        }
-
-        const data = await response.json();
-        setSalaries(data);
-      } catch (error) {
-        console.error("Error fetching salaries:", error);
-        toast("Failed to fetch data. Using mock data.", "error");
-        setSalaries(MOCK_SALARIES);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSalaries();
   }, []);
 
-  // Filter and sort salaries
+  const fetchSalaries = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:5001/api/salaries");
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch salaries");
+      }
+
+      const data = await response.json();
+      setSalaries(data);
+    } catch (error) {
+      console.error("Error fetching salaries:", error);
+      toast("Failed to fetch salaries", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredAndSortedSalaries = useMemo(() => {
     let filtered = salaries.filter((salary) => {
       const matchesSearch = salary.Employee_Name.toLowerCase().includes(
@@ -159,13 +212,11 @@ export default function SalariesPage() {
     return filtered;
   }, [salaries, searchQuery, dateFilter, sortField, sortOrder]);
 
-  // Calculate total payouts
   const totalPayouts = useMemo(
     () => salaries.reduce((sum, salary) => sum + salary.Salary, 0),
     [salaries]
   );
 
-  // Handle sort
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -175,28 +226,38 @@ export default function SalariesPage() {
     }
   };
 
-  // Handle add salary
-  const handleAddSalary = () => {
+  const handleAddSalary = async () => {
     if (!formData.Employee_Name || !formData.Salary || !formData.Pay_Date) {
       toast("Please fill all fields", "error");
       return;
     }
 
-    const newSalary: Salary = {
-      Salary_Id: `SAL${String(salaries.length + 1).padStart(3, "0")}`,
-      Employee_Name: formData.Employee_Name,
-      Salary: parseFloat(formData.Salary),
-      Pay_Date: formData.Pay_Date,
-    };
+    try {
+      const response = await fetch("http://localhost:5001/api/salaries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
 
-    setSalaries([...salaries, newSalary]);
-    setIsAddModalOpen(false);
-    setFormData({ Employee_Name: "", Salary: "", Pay_Date: "" });
-    toast("Salary record added successfully");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create salary");
+      }
+
+      const newSalary = await response.json();
+      setSalaries([...salaries, newSalary]);
+      setIsAddModalOpen(false);
+      setFormData({ Employee_Name: "", Salary: "", Pay_Date: "" });
+      toast("Salary record added successfully");
+    } catch (error: any) {
+      console.error("Error adding salary:", error);
+      toast(error.message || "Failed to add salary", "error");
+    }
   };
 
-  // Handle edit salary
-  const handleEditSalary = () => {
+  const handleEditSalary = async () => {
     if (
       !selectedSalary ||
       !formData.Employee_Name ||
@@ -207,39 +268,72 @@ export default function SalariesPage() {
       return;
     }
 
-    setSalaries(
-      salaries.map((s) =>
-        s.Salary_Id === selectedSalary.Salary_Id
-          ? {
-              ...s,
-              Employee_Name: formData.Employee_Name,
-              Salary: parseFloat(formData.Salary),
-              Pay_Date: formData.Pay_Date,
-            }
-          : s
-      )
-    );
-    setIsEditModalOpen(false);
-    setSelectedSalary(null);
-    setFormData({ Employee_Name: "", Salary: "", Pay_Date: "" });
-    toast("Salary record updated successfully");
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/salaries/${selectedSalary.Salary_Id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update salary");
+      }
+
+      const updatedSalary = await response.json();
+      setSalaries(
+        salaries.map((s) =>
+          s.Salary_Id === selectedSalary.Salary_Id ? updatedSalary : s
+        )
+      );
+      setIsEditModalOpen(false);
+      setSelectedSalary(null);
+      setFormData({ Employee_Name: "", Salary: "", Pay_Date: "" });
+      toast("Salary record updated successfully");
+    } catch (error: any) {
+      console.error("Error updating salary:", error);
+      toast(error.message || "Failed to update salary", "error");
+    }
   };
 
-  // Handle delete salary
-  const handleDeleteSalary = (salaryId: string) => {
-    setSalaries(salaries.filter((s) => s.Salary_Id !== salaryId));
-    setDropdownOpen(null);
-    toast("Salary record deleted successfully");
+  const handleDeleteSalary = async (salaryId: string) => {
+    if (!confirm("Are you sure you want to delete this salary record?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/salaries/${salaryId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete salary");
+      }
+
+      setSalaries(salaries.filter((s) => s.Salary_Id !== salaryId));
+      setDropdownOpen(null);
+      toast("Salary record deleted successfully");
+    } catch (error: any) {
+      console.error("Error deleting salary:", error);
+      toast(error.message || "Failed to delete salary", "error");
+    }
   };
 
-  // Handle view salary
   const handleViewSalary = (salary: Salary) => {
     setSelectedSalary(salary);
     setIsViewModalOpen(true);
     setDropdownOpen(null);
   };
 
-  // Open edit modal
   const openEditModal = (salary: Salary) => {
     setSelectedSalary(salary);
     setFormData({
@@ -251,7 +345,6 @@ export default function SalariesPage() {
     setDropdownOpen(null);
   };
 
-  // Format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -259,7 +352,6 @@ export default function SalariesPage() {
     }).format(amount);
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -271,7 +363,6 @@ export default function SalariesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent flex items-center gap-3">
@@ -293,7 +384,6 @@ export default function SalariesPage() {
           </button>
         </div>
 
-        {/* Stats Card */}
         <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white rounded-3xl shadow-2xl p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
@@ -315,7 +405,6 @@ export default function SalariesPage() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="bg-white rounded-3xl shadow-lg p-6 border border-slate-200/60">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
@@ -348,7 +437,6 @@ export default function SalariesPage() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200/60">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -495,7 +583,6 @@ export default function SalariesPage() {
           </div>
         </div>
 
-        {/* Add Salary Modal */}
         {isAddModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
@@ -517,17 +604,12 @@ export default function SalariesPage() {
                     <label className="text-sm font-semibold text-slate-700 block mb-2">
                       Employee Name
                     </label>
-                    <input
-                      type="text"
-                      placeholder="Enter employee name"
+                    <EmployeeDropdown
                       value={formData.Employee_Name}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          Employee_Name: e.target.value,
-                        })
+                      onChange={(name) =>
+                        setFormData({ ...formData, Employee_Name: name })
                       }
-                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                      placeholder="Select employee"
                     />
                   </div>
                   <div>
@@ -584,7 +666,6 @@ export default function SalariesPage() {
           </div>
         )}
 
-        {/* Edit Salary Modal */}
         {isEditModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div
@@ -606,17 +687,12 @@ export default function SalariesPage() {
                     <label className="text-sm font-semibold text-slate-700 block mb-2">
                       Employee Name
                     </label>
-                    <input
-                      type="text"
-                      placeholder="Enter employee name"
+                    <EmployeeDropdown
                       value={formData.Employee_Name}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          Employee_Name: e.target.value,
-                        })
+                      onChange={(name) =>
+                        setFormData({ ...formData, Employee_Name: name })
                       }
-                      className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                      placeholder="Select employee"
                     />
                   </div>
                   <div>
