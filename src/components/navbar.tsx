@@ -1,34 +1,34 @@
+"use client";
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Search,
-  User,
-  Settings,
-  LogOut,
-  Menu,
-  Bell,
-  ChevronDown,
-} from "lucide-react";
-
-// Mock auth context for demo
-const useAuth = () => ({
-  user: { name: "John Doe", email: "john.doe@paymanager.com", role: "Admin" },
-  logout: () => console.log("Logging out..."),
-});
+import { User, LogOut, Menu, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface NavbarProps {
   onMenuToggle: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
+  const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { user, logout } = useAuth();
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setName(localStorage.getItem("username"));
+      setEmail(localStorage.getItem("email"));
+    }
+  }, []);
 
   const handleLogout = () => {
-    logout();
-    setShowProfileMenu(false);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      localStorage.removeItem("username");
+      localStorage.removeItem("email");
+    }
+    router.push("/");
   };
 
   // Close profile menu when clicking outside
@@ -55,7 +55,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         boxShadow: "0 4px 32px rgba(64, 81, 59, 0.08)",
       }}
     >
-      {/* Subtle gradient overlay */}
+      {/* Gradient overlay */}
       <div
         className="absolute inset-0 opacity-30"
         style={{
@@ -77,55 +77,17 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           />
         </button>
 
-        {/* Enhanced Search Bar */}
-        <div className="relative ml-8">
-          <div
-            className={`relative flex items-center transition-all duration-300 ${
-              isSearchFocused ? "scale-105" : ""
-            }`}
+        {/* PayManager Logo */}
+        <div className="ml-4 flex items-center space-x-2">
+          {/* If you have a logo image, replace the text below with:
+              <img src="/logo.png" alt="PayManager Logo" className="h-8" />
+          */}
+          <span
+            className="text-2xl logo-font font-bold tracking-tight"
+            style={{ color: "#40513b" }}
           >
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search
-                className={`h-5 w-5 transition-all duration-300 ${
-                  isSearchFocused ? "scale-110" : ""
-                }`}
-                style={{ color: isSearchFocused ? "#609966" : "#9dc08b" }}
-              />
-            </div>
-            <input
-              type="text"
-              placeholder="Search anything..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-              className="block w-72 sm:w-96 pl-12 pr-4 py-3 border-2 rounded-2xl leading-5 backdrop-blur-sm placeholder-gray-400 transition-all duration-300 focus:outline-none text-base font-medium"
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                borderColor: isSearchFocused
-                  ? "#609966"
-                  : "rgba(157, 192, 139, 0.3)",
-                boxShadow: isSearchFocused
-                  ? "0 0 0 3px rgba(96, 153, 102, 0.1)"
-                  : "none",
-              }}
-            />
-          </div>
-
-          {/* Search suggestions hint */}
-          {searchTerm && (
-            <div
-              className="absolute top-full left-0 right-0 mt-2 p-4 rounded-2xl backdrop-blur-xl border shadow-2xl z-50"
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.95)",
-                borderColor: "rgba(157, 192, 139, 0.3)",
-              }}
-            >
-              <p className="text-sm text-gray-500">
-                Press Enter to search for "{searchTerm}"
-              </p>
-            </div>
-          )}
+            PayManager
+          </span>
         </div>
       </div>
 
@@ -138,7 +100,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             className="flex items-center space-x-3 p-2 rounded-2xl transition-all duration-300 hover:scale-105 hover:bg-green-200"
             style={{ backgroundColor: "rgba(96, 153, 102, 0.1)" }}
           >
-            {/* Avatar */}
             <div
               className="relative h-10 w-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl"
               style={{
@@ -146,24 +107,18 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
               }}
             >
               <User className="h-5 w-5 text-white" />
-              {/* Online indicator */}
               <div
                 className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white"
                 style={{ backgroundColor: "#9dc08b" }}
               />
             </div>
 
-            {/* User Info */}
             <div className="hidden md:block text-left">
               <p className="text-sm font-semibold" style={{ color: "#40513b" }}>
-                {user?.name}
-              </p>
-              <p className="text-xs opacity-70" style={{ color: "#40513b" }}>
-                {user?.role}
+                {name || "User"}
               </p>
             </div>
 
-            {/* Dropdown Arrow */}
             <ChevronDown
               className={`h-4 w-4 transition-transform duration-300 ${
                 showProfileMenu ? "rotate-180" : ""
@@ -172,7 +127,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             />
           </button>
 
-          {/* Enhanced Dropdown Menu */}
           {showProfileMenu && (
             <div
               className="origin-top-right absolute right-0 mt-3 w-64 rounded-2xl backdrop-blur-xl border shadow-2xl z-50 overflow-hidden"
@@ -182,7 +136,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                 boxShadow: "0 20px 40px rgba(64, 81, 59, 0.15)",
               }}
             >
-              {/* User Info Header */}
               <div
                 className="px-6 py-4 border-b"
                 style={{
@@ -194,26 +147,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                   className="font-semibold text-base"
                   style={{ color: "#40513b" }}
                 >
-                  {user?.name}
+                  {name || "User"}
                 </p>
                 <p className="text-sm opacity-70" style={{ color: "#40513b" }}>
-                  {user?.email}
+                  {email || ""}
                 </p>
               </div>
 
-              {/* Menu Items */}
               <div className="py-2">
-                <button
-                  className="flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] group hover:bg-green-50"
-                  style={{ color: "#40513b" }}
-                >
-                  <Settings
-                    className="mr-3 h-5 w-5 transition-transform duration-200 group-hover:rotate-90"
-                    style={{ color: "#609966" }}
-                  />
-                  Account Settings
-                </button>
-
                 <button
                   onClick={handleLogout}
                   className="flex items-center w-full px-6 py-3 text-sm font-medium transition-all duration-200 hover:scale-[1.02] group hover:bg-green-50"

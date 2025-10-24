@@ -39,6 +39,8 @@ const LoginScreen: React.FC = () => {
       }
 
       localStorage.setItem("token", data.token);
+      localStorage.setItem("username", data.user.name);
+      localStorage.setItem("email", data.user.email);
       router.push("/dashboard");
     } catch (err) {
       console.error(err);

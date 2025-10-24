@@ -73,7 +73,8 @@ const Button = ({
   disabled?: boolean;
 }) => {
   const variants = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-sm",
+    primary:
+      "bg-[var(--color-primary)] text-white hover:bg-[var(--color-secondary)] shadow-sm",
     secondary: "bg-gray-100 text-gray-700 hover:bg-gray-200",
     ghost: "text-gray-700 hover:bg-gray-100",
     danger: "bg-red-600 text-white hover:bg-red-700 shadow-sm",
@@ -370,7 +371,6 @@ export default function EmployeesPage() {
     type: "success" | "error" | "info";
   } | null>(null);
 
-  // Update newEmployee state to use IDs
   const [newEmployee, setNewEmployee] = useState({
     userId: "",
     deptId: "",
@@ -426,7 +426,6 @@ export default function EmployeesPage() {
     }
   };
 
-  // Update the departments for filter
   const departmentOptions = useMemo(() => {
     const depts = ["All", ...new Set(employees.map((e) => e.Dept_Name))];
     return depts;
@@ -491,7 +490,7 @@ export default function EmployeesPage() {
 
       if (!response.ok) throw new Error("Failed to add employee");
 
-      await fetchEmployees(); // Refresh the list
+      await fetchEmployees();
       setIsAddModalOpen(false);
       setNewEmployee({
         userId: "",
@@ -655,7 +654,7 @@ export default function EmployeesPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] flex items-center justify-center text-white font-semibold">
                               {emp.User_Name.charAt(0)}
                             </div>
                             <span className="font-medium">{emp.User_Name}</span>

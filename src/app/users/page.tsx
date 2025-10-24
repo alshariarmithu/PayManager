@@ -37,7 +37,6 @@ type SortOrder = "asc" | "desc";
 
 const ROLES = ["Admin", "HR Manager", "Accountant", "Employee", "Supervisor"];
 
-
 // Toast Component
 const Toast = ({
   message,
@@ -488,7 +487,7 @@ export default function UsersPage() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div>
             <div className="flex items-center gap-4 mb-2">
-              <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] rounded-2xl shadow-lg">
                 <Users className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-4xl font-bold text-slate-800">
@@ -501,7 +500,7 @@ export default function UsersPage() {
           </div>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+            className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
           >
             <Plus className="w-5 h-5" />
             Add New User
@@ -688,7 +687,7 @@ export default function UsersPage() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
+                          <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] rounded-full flex items-center justify-center text-white font-semibold">
                             {user.name.charAt(0).toUpperCase()}
                           </div>
                           <span className="font-medium text-slate-800">
@@ -854,7 +853,7 @@ export default function UsersPage() {
               </button>
               <button
                 onClick={handleAddUser}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all"
               >
                 Add User
               </button>
@@ -980,7 +979,7 @@ export default function UsersPage() {
               </button>
               <button
                 onClick={handleEditUser}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all"
               >
                 Update User
               </button>
@@ -1063,7 +1062,7 @@ export default function UsersPage() {
                     setIsViewModalOpen(false);
                     openEditModal(selectedUser);
                   }}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)] text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all flex items-center justify-center gap-2"
                 >
                   <Edit2 className="w-5 h-5" />
                   Edit User

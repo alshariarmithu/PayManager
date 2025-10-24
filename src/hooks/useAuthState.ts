@@ -70,12 +70,13 @@ export function useAuthState() {
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
 
     setIsAuthenticated(false);
     setUser(null);
 
-    router.push("/login");
+    router.push("/");
   }, [router]);
 
   return {

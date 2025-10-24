@@ -278,7 +278,7 @@ export default function GradesPage() {
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+              <div className="p-3 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] rounded-xl shadow-lg">
                 <Layers className="w-7 h-7 text-white" />
               </div>
               <div>
@@ -292,7 +292,7 @@ export default function GradesPage() {
             </div>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary)] hover:from-[var(--color-primary)] hover:to-[var(--color-primary)] text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
             >
               <PlusCircle className="w-4 h-4" />
               Add Grade
@@ -626,7 +626,7 @@ export default function GradesPage() {
               <button
                 onClick={handleAdd}
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all disabled:opacity-50"
+                className="px-4 py-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary)] hover:from-[var(--color-primary)] hover:to-[var(--color-secondary)] text-white rounded-lg transition-all disabled:opacity-50"
               >
                 {isSubmitting ? "Adding..." : "Add Grade"}
               </button>
@@ -709,7 +709,7 @@ export default function GradesPage() {
               <button
                 onClick={handleEdit}
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all disabled:opacity-50"
+                className="px-4 py-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary)] hover:from-[var(--color-primary)] hover:to-[var(--color-secondary)] text-white rounded-lg transition-all disabled:opacity-50"
               >
                 {isSubmitting ? "Saving..." : "Save Changes"}
               </button>

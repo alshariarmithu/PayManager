@@ -50,7 +50,6 @@ export default function DepartmentsPage() {
     Total_Employees: 0,
   });
 
-  // Base API URL - adjust this to match your backend URL
   const API_BASE_URL = "http://localhost:5001/api/departments";
 
   useEffect(() => {
@@ -234,7 +233,7 @@ export default function DepartmentsPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div className="flex items-center gap-3 mb-4 md:mb-0">
-              <div className="p-3 bg-gradient-to-br from-[#609966] to-[#609966] rounded-xl shadow-lg">
+              <div className="p-3 bg-gradient-to-br from-[#609966] to-[var(--color-accent)] rounded-xl shadow-lg">
                 <Building className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -250,7 +249,7 @@ export default function DepartmentsPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#609966] to-[#609966] text-white rounded-xl shadow-lg hover:shadow-xl transition-shadow font-medium"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#609966] to-[var(--color-primary)] text-white rounded-xl shadow-lg hover:shadow-xl transition-shadow font-medium"
             >
               <PlusCircle className="w-5 h-5" />
               Add Department
@@ -521,7 +520,7 @@ export default function DepartmentsPage() {
                     />
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Total Employees
                     </label>
@@ -537,7 +536,7 @@ export default function DepartmentsPage() {
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Enter employee count"
                     />
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="flex gap-3 mt-6">
@@ -549,7 +548,7 @@ export default function DepartmentsPage() {
                   </button>
                   <button
                     onClick={handleAdd}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-shadow font-medium"
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary)] text-white rounded-xl hover:shadow-lg transition-shadow font-medium"
                   >
                     Add Department
                   </button>

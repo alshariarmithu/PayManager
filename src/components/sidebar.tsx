@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
-
+  const router = useRouter();
   const menuItems = [
     {
       name: "Dashboard",
@@ -60,6 +61,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       href: "/nlquery",
     },
   ];
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    router.push("/");
+  };
 
   return (
     <>
@@ -108,7 +117,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         <div className="absolute bottom-0 w-full px-3 py-4 border-t border-[#9dc08b]/30">
-          <button className="flex items-center w-full px-3 py-3 rounded-lg text-[#40513b] font-medium hover:bg-red-600/10">
+          <button
+            onClick={logout}
+            className="flex items-center w-full px-3 py-3 rounded-lg text-[#40513b] font-medium hover:bg-red-600/10"
+          >
             <LogOut className="mr-3 h-5 w-5 text-red-600" />
             {!isCollapsed && "Logout"}
           </button>
