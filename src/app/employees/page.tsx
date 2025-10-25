@@ -14,6 +14,9 @@ import {
   Eye,
   X,
   Filter,
+  Mail,
+  DollarSign,
+  Award,
 } from "lucide-react";
 
 interface Employee {
@@ -151,43 +154,52 @@ const Dialog = ({
   onClose,
   title,
   children,
+  size = "md",
 }: {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-}) => (
-  <AnimatePresence>
-    {isOpen && (
-      <>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 bg-opacity-50 z-40"
-          onClick={onClose}
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-50 w-full max-w-md p-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          {children}
-        </motion.div>
-      </>
-    )}
-  </AnimatePresence>
-);
+  size?: "md" | "lg";
+}) => {
+  const sizeClasses = {
+    md: "max-w-md",
+    lg: "max-w-2xl",
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 bg-opacity-50 z-40"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-50 w-full ${sizeClasses[size]} p-6 max-h-[90vh] overflow-y-auto`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {children}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const DropdownMenu = ({
   trigger,
@@ -366,12 +378,25 @@ export default function EmployeesPage() {
   const [sortField, setSortField] = useState<SortField>("Employee_Id");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+  const [viewDetails, setViewDetails] = useState<any>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "error" | "info";
   } | null>(null);
 
   const [newEmployee, setNewEmployee] = useState({
+    userId: "",
+    deptId: "",
+    gradeId: "",
+    hireDate: "",
+  });
+
+  const [editEmployee, setEditEmployee] = useState({
     userId: "",
     deptId: "",
     gradeId: "",
@@ -425,6 +450,20 @@ export default function EmployeesPage() {
       setDropdownLoading(false);
     }
   };
+
+  // const fetchEmployeeDetails = async (id: number) => {
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:5001/api/employees/${id}`
+  //     );
+  //     if (!response.ok) throw new Error("Failed to fetch employee details");
+  //     const data = await response.json();
+  //     setViewDetails(data);
+  //   } catch (error) {
+  //     console.error("Error fetching employee details:", error);
+  //     showToast("Failed to fetch employee details", "error");
+  //   }
+  // };
 
   const departmentOptions = useMemo(() => {
     const depts = ["All", ...new Set(employees.map((e) => e.Dept_Name))];
@@ -506,6 +545,10 @@ export default function EmployeesPage() {
   };
 
   const handleDeleteEmployee = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this employee?")) {
+      return;
+    }
+
     try {
       const response = await fetch(
         `http://localhost:5001/api/employees/${id}`,
@@ -522,12 +565,67 @@ export default function EmployeesPage() {
     }
   };
 
-  const handleViewEmployee = (emp: Employee) => {
-    showToast(`Viewing ${emp.User_Name}`, "info");
-  };
+  // const handleViewEmployee = async (emp: Employee) => {
+  //   setSelectedEmployee(emp);
+  //   setViewDetails(null);
+  //   setIsViewModalOpen(true);
+  //   await fetchEmployeeDetails(emp.Employee_Id);
+  // };
 
   const handleEditEmployee = (emp: Employee) => {
-    showToast(`Editing ${emp.User_Name}`, "info");
+    setSelectedEmployee(emp);
+
+    // Find the user, department, and grade IDs from the dropdown data
+    const user = users.find((u) => u.name === emp.User_Name);
+    const dept = departments.find((d) => d.name === emp.Dept_Name);
+    const grade = grades.find((g) => g.name === emp.Grade_Name);
+
+    setEditEmployee({
+      userId: user?.id.toString() || "",
+      deptId: dept?.id.toString() || "",
+      gradeId: grade?.id.toString() || "",
+      hireDate: emp.Hire_Date.split("T")[0],
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateEmployee = async () => {
+    if (
+      !editEmployee.userId ||
+      !editEmployee.deptId ||
+      !editEmployee.gradeId ||
+      !editEmployee.hireDate ||
+      !selectedEmployee
+    ) {
+      showToast("Please fill all fields", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/employees/${selectedEmployee.Employee_Id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: parseInt(editEmployee.userId),
+            deptId: parseInt(editEmployee.deptId),
+            gradeId: parseInt(editEmployee.gradeId),
+            hireDate: editEmployee.hireDate,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update employee");
+
+      await fetchEmployees();
+      setIsEditModalOpen(false);
+      setSelectedEmployee(null);
+      showToast("Employee updated successfully", "success");
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to update employee", "error");
+    }
   };
 
   return (
@@ -686,11 +784,6 @@ export default function EmployeesPage() {
                             }
                             items={[
                               {
-                                label: "View",
-                                icon: Eye,
-                                onClick: () => handleViewEmployee(emp),
-                              },
-                              {
                                 label: "Edit",
                                 icon: Edit,
                                 onClick: () => handleEditEmployee(emp),
@@ -827,6 +920,269 @@ export default function EmployeesPage() {
             </Button>
             <Button
               onClick={() => setIsAddModalOpen(false)}
+              variant="secondary"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* View Employee Modal */}
+      <Dialog
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedEmployee(null);
+          setViewDetails(null);
+        }}
+        title="Employee Details"
+        size="lg"
+      >
+        {!viewDetails ? (
+          <div className="space-y-4">
+            <div className="animate-pulse">
+              <div className="h-24 bg-gray-200 rounded-lg mb-4" />
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-4 bg-gray-200 rounded w-1/2" />
+                <div className="h-4 bg-gray-200 rounded w-5/6" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Employee Header */}
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] flex items-center justify-center text-white text-2xl font-bold">
+                {selectedEmployee?.User_Name.charAt(0)}
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {selectedEmployee?.User_Name}
+                </h3>
+                <p className="text-gray-600 flex items-center gap-2 mt-1">
+                  <Mail className="w-4 h-4" />
+                  {viewDetails.email}
+                </p>
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-gray-600 mb-1">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">Employee ID</span>
+                </div>
+                <p className="text-lg font-semibold text-gray-900">
+                  #{selectedEmployee?.Employee_Id}
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-gray-600 mb-1">
+                  <Briefcase className="w-4 h-4" />
+                  <span className="text-sm font-medium">Department</span>
+                </div>
+                <p className="text-lg font-semibold text-gray-900">
+                  {selectedEmployee?.Dept_Name}
+                </p>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-gray-600 mb-1">
+                  <Award className="w-4 h-4" />
+                  <span className="text-sm font-medium">Grade</span>
+                </div>
+                <Badge variant={selectedEmployee?.Grade_Name || "default"}>
+                  {selectedEmployee?.Grade_Name}
+                </Badge>
+              </div>
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-gray-600 mb-1">
+                  <CalendarDays className="w-4 h-4" />
+                  <span className="text-sm font-medium">Hire Date</span>
+                </div>
+                <p className="text-lg font-semibold text-gray-900">
+                  {selectedEmployee &&
+                    new Date(selectedEmployee.Hire_Date).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
+                </p>
+              </div>
+            </div>
+
+            {/* Salary Information */}
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-green-600" />
+                Salary Information
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-600">Basic Salary</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    ${viewDetails.basicSalary?.toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Bonus</p>
+                  <p className="text-xl font-bold text-gray-900">
+                    ${viewDetails.bonus?.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  if (selectedEmployee) {
+                    handleEditEmployee(selectedEmployee);
+                  }
+                }}
+                className="flex-1 flex items-center justify-center gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Employee
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setSelectedEmployee(null);
+                  setViewDetails(null);
+                }}
+                variant="secondary"
+                className="flex-1"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      {/* Edit Employee Modal */}
+      <Dialog
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedEmployee(null);
+        }}
+        title={`Edit Employee: ${selectedEmployee?.User_Name}`}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              User
+            </label>
+            <select
+              value={editEmployee.userId}
+              onChange={(e) =>
+                setEditEmployee({ ...editEmployee, userId: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              disabled={dropdownLoading}
+            >
+              <option value="">Select User</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.email})
+                </option>
+              ))}
+            </select>
+            {dropdownLoading && (
+              <p className="text-xs text-gray-500 mt-1">Loading users...</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Department
+            </label>
+            <select
+              value={editEmployee.deptId}
+              onChange={(e) =>
+                setEditEmployee({ ...editEmployee, deptId: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              disabled={dropdownLoading}
+            >
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+            {dropdownLoading && (
+              <p className="text-xs text-gray-500 mt-1">
+                Loading departments...
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Grade
+            </label>
+            <select
+              value={editEmployee.gradeId}
+              onChange={(e) =>
+                setEditEmployee({ ...editEmployee, gradeId: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              disabled={dropdownLoading}
+            >
+              <option value="">Select Grade</option>
+              {grades.map((grade) => (
+                <option key={grade.id} value={grade.id}>
+                  {grade.name} (Salary: ${grade.basicSalary})
+                </option>
+              ))}
+            </select>
+            {dropdownLoading && (
+              <p className="text-xs text-gray-500 mt-1">Loading grades...</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Hire Date
+            </label>
+            <input
+              type="date"
+              value={editEmployee.hireDate}
+              onChange={(e) =>
+                setEditEmployee({ ...editEmployee, hireDate: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handleUpdateEmployee}
+              className="flex-1"
+              disabled={dropdownLoading}
+            >
+              {dropdownLoading ? "Loading..." : "Update Employee"}
+            </Button>
+            <Button
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedEmployee(null);
+              }}
               variant="secondary"
               className="flex-1"
             >
