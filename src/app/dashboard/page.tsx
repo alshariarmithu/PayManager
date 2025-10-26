@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
       icon: Users,
       gradient: "from-emerald-400 to-emerald-600",
       bgColor: "#609966",
-      change: "+12%",
+      change: "--%",
       trend: "up",
     },
     {
@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
       icon: UserCheck,
       gradient: "from-emerald-500 to-emerald-700",
       bgColor: "#40513b",
-      change: "+8%",
+      change: "--%",
       trend: "up",
     },
     {
@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
       icon: Building2,
       gradient: "from-emerald-300 to-emerald-500",
       bgColor: "#9dc08b",
-      change: "0%",
+      change: "--%",
       trend: "neutral",
     },
     {
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
       icon: DollarSign,
       gradient: "from-emerald-600 to-emerald-800",
       bgColor: "#40513b",
-      change: "+15%",
+      change: "--%",
       trend: "up",
     },
   ];
@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
                         >
                           {stat.value}
                         </p>
-                        <div className="flex items-center space-x-1">
+                        {/* <div className="flex items-center space-x-1">
                           <ArrowUpRight
                             className={`w-4 h-4 ${
                               stat.trend === "up"
@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
                           >
                             {stat.change} from last month
                           </span>
-                        </div>
+                        </div> */}
                       </div>
                       <div
                         className="p-4 rounded-2xl shadow-lg transform transition-transform duration-300 group-hover:scale-110"
@@ -397,9 +397,9 @@ const Dashboard: React.FC = () => {
                 >
                   {item.value}
                 </p>
-                <p className="text-sm font-medium mt-1 text-emerald-500">
+                {/* <p className="text-sm font-medium mt-1 text-emerald-500">
                   {item.change} this quarter
-                </p>
+                </p> */}
               </div>
             ))}
           </div>

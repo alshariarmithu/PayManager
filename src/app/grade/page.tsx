@@ -330,7 +330,7 @@ export default function GradesPage() {
                   Total Base Salary
                 </p>
                 <p className="text-3xl font-bold text-slate-900 mt-2">
-                  ৳{totalSalary.toLocaleString()}
+                  ${totalSalary.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-emerald-100 rounded-lg">
@@ -346,7 +346,7 @@ export default function GradesPage() {
                   Total Bonuses
                 </p>
                 <p className="text-3xl font-bold text-slate-900 mt-2">
-                  ৳{totalBonus.toLocaleString()}
+                  ${totalBonus.toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-amber-100 rounded-lg">
@@ -472,17 +472,17 @@ export default function GradesPage() {
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-medium text-emerald-600">
-                              ৳{grade.Basic_Salary.toLocaleString()}
+                              ${grade.Basic_Salary.toLocaleString()}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-medium text-amber-600">
-                              ৳{grade.Grade_Bonus.toLocaleString()}
+                              ${grade.Grade_Bonus.toLocaleString()}
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-semibold text-blue-600">
-                              ৳
+                              $
                               {(
                                 grade.Basic_Salary + grade.Grade_Bonus
                               ).toLocaleString()}
@@ -530,13 +530,13 @@ export default function GradesPage() {
                     <tr className="bg-gradient-to-r from-slate-50 to-blue-50 font-semibold border-t-2 border-slate-200">
                       <td className="px-6 py-4 text-slate-900">Total</td>
                       <td className="px-6 py-4 text-emerald-600">
-                        ৳{totalSalary.toLocaleString()}
+                        ${totalSalary.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-amber-600">
-                        ৳{totalBonus.toLocaleString()}
+                        ${totalBonus.toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-blue-600">
-                        ৳{(totalSalary + totalBonus).toLocaleString()}
+                        ${(totalSalary + totalBonus).toLocaleString()}
                       </td>
                       <td className="px-6 py-4"></td>
                     </tr>
